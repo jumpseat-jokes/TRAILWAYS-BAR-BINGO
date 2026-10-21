@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d1526">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Trailways Bar Bingo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: one-screen phone card. Night ramp: deep navy board, amber taxi-light stamps, red-heart BINGO flash. Deliberately single dark theme. */
+:root{
+  --night:#0d1526; --panel:#16213a; --cell:#1d2a47; --line:#2c3b5f;
+  --ink:#eef1f7; --muted:#93a0bd; --amber:#ffb627; --amber-ink:#2a1a00;
+  --heart:#e8344e; --go:#3ccf8e;
+  --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --cond:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"Barlow",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+html,body{background:var(--night);color:var(--ink)}
+body{font-family:var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 28px}
+.wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:900;font-size:clamp(30px,9vw,42px);line-height:.9;margin:0;letter-spacing:.01em;text-transform:uppercase;text-wrap:balance}
+h1 span{color:var(--amber)}
+.sub{font-family:var(--cond);color:var(--muted);font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-top:4px}
+.score{font-family:var(--cond);text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.score b{display:block;font-family:var(--display);font-size:30px;color:var(--ink);line-height:1;letter-spacing:0}
+
+.mic{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.micbtn{flex:none;width:52px;height:52px;border-radius:50%;border:0;background:var(--amber);color:var(--amber-ink);display:grid;place-items:center;cursor:pointer;position:relative}
+.micbtn svg{width:24px;height:24px}
+.micbtn[aria-pressed="true"]{background:var(--heart);color:#fff}
+.micbtn[aria-pressed="true"]::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid var(--heart);animation:pulse 1.4s ease-out infinite}
+@keyframes pulse{from{opacity:.9;transform:scale(.9)}to{opacity:0;transform:scale(1.25)}}
+.micbtn:focus-visible,.cell:focus-visible,.btn:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.status{min-width:0;flex:1}
+.status .lbl{font-family:var(--cond);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase}
+.status .live{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.warn{font-size:13px;line-height:1.45;color:var(--ink);background:#2a2333;border:1px solid #4a3550;border-radius:12px;padding:10px 12px}
+.warn b{color:var(--amber)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:8px}
+.cols,.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.cols div{text-align:center;padding:2px 0 6px}
+.cols b{display:block;font-family:var(--display);font-weight:900;font-size:26px;line-height:1;color:var(--amber)}
+.cols small{display:block;font-family:var(--cond);font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.cell{position:relative;aspect-ratio:1/1.08;max-width:100%;min-width:0;border:1px solid var(--line);background:var(--cell);color:var(--ink);border-radius:8px;padding:4px 3px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;font-family:var(--cond);font-weight:600;font-size:clamp(10.5px,2.9vw,13.5px);line-height:1.08;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.cell span{position:relative;z-index:1;overflow-wrap:anywhere}
+.cell::before{content:"";position:absolute;width:82%;aspect-ratio:1;border-radius:50%;background:var(--amber);opacity:0;transform:scale(.3) rotate(var(--r,0deg));transition:opacity .18s,transform .25s cubic-bezier(.3,1.6,.5,1)}
+.cell.on{color:var(--amber-ink);border-color:var(--amber)}
+.cell.on::before{opacity:.92;transform:scale(1) rotate(var(--r,0deg))}
+.cell.mic-hit::after{content:"";position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--heart);z-index:2}
+.cell.free{background:var(--heart);border-color:var(--heart);color:#fff;font-family:var(--display);font-weight:900;font-size:clamp(14px,4vw,19px);letter-spacing:.02em}
+.cell.free::before{display:none}
+.cell.win{box-shadow:inset 0 0 0 2px var(--heart)}
+.cell.flash{animation:flash .7s ease-out}
+@keyframes flash{0%{box-shadow:0 0 0 0 var(--amber)}100%{box-shadow:0 0 0 14px transparent}}
+
+.toast{min-height:20px;font-size:13px;color:var(--muted);text-align:center}
+.toast b{color:var(--amber);font-weight:600}
+.type{display:flex;gap:8px}
+.type input{flex:1;min-width:0;font:inherit;font-size:15px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.type input::placeholder{color:var(--muted)}
+.btn{font-family:var(--cond);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;border-radius:10px;border:1px solid var(--line);background:var(--cell);color:var(--ink);padding:10px 14px;cursor:pointer}
+.btn.primary{background:var(--amber);border-color:var(--amber);color:var(--amber-ink)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row .btn{flex:1}
+.rules{font-size:13px;line-height:1.5;color:var(--muted)}
+.rules b{color:var(--ink);font-weight:600}
+
+.bingo{position:fixed;inset:0;display:grid;place-items:center;background:rgba(13,21,38,.82);z-index:20;padding:24px}
+.bingo div{text-align:center}
+.bingo h2{font-family:var(--display);font-weight:900;font-size:clamp(72px,26vw,140px);line-height:.85;margin:0;color:var(--heart);transform:rotate(-6deg);text-shadow:0 4px 0 #000}
+.bingo p{font-family:var(--cond);font-size:18px;letter-spacing:.08em;text-transform:uppercase;margin:18px 0 20px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Trailways Bar <span>Bingo</span></h1>
+      <div class="sub">Crew talk · layover edition</div>
+    </div>
+    <div class="score"><b id="count">1/25</b>stamped · <span id="lines">0</span> lines</div>
+  </header>
+
+  <div class="mic">
+    <button class="micbtn" id="micbtn" aria-pressed="false" aria-label="Start listening">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+    </button>
+    <div class="status">
+      <div class="lbl" id="miclbl">Tap to listen</div>
+      <div class="live" id="live">Squares stamp themselves when the table says them.</div>
+    </div>
+  </div>
+  <div class="warn" id="warn" hidden></div>
+
+  <div class="card">
+    <div class="cols" aria-hidden="true">
+      <div><b>B</b><small>Bravo</small></div><div><b>I</b><small>India</small></div><div><b>N</b><small>Nov</small></div><div><b>G</b><small>Golf</small></div><div><b>O</b><small>Oscar</small></div>
+    </div>
+    <div class="grid" id="grid" role="grid"></div>
+  </div>
+
+  <div class="toast" id="toast" aria-live="polite">Tap a square to stamp it by hand. Tap again to clear it.</div>
+
+  <form class="type" id="typeform" autocomplete="off">
+    <input id="typed" placeholder="Type a line you heard…" aria-label="Type a line you heard">
+    <button class="btn" type="submit">Check</button>
+  </form>
+
+  <div class="row">
+    <button class="btn primary" id="newcard">New card</button>
+    <button class="btn" id="clear">Clear stamps</button>
+  </div>
+
+  <p class="rules"><b>How to play:</b> everyone opens the page on their own phone and gets a different card. Set the phone face-up on the table and start listening. When someone asks "where are you based?" or complains about the commute, the square stamps itself. Five in a row, column or diagonal wins the next round. A red dot means the mic caught it; tap any square to fix a wrong call.</p>
+</div>
+
+<div class="bingo" id="bingo" hidden>
+  <div>
+    <h2>BINGO</h2>
+    <p id="bingomsg">Next round's on the table</p>
+    <button class="btn primary" id="closebingo">Keep playing</button>
+  </div>
+</div>
+
+<script>
+const POOL = [
+  ["Where are you based?", /where (are|r) (you|ya) based|what base|where('s| is) your base|which base/],
+  ["How's that drive?", /how('s| is| was) (that|the|your) (drive|commute)|long drive/],
+  ["Where are you going tomorrow?", /where (are )?(you|ya) (going|headed|off to|flying) tomorrow|where to tomorrow|tomorrow('s| is) (trip|leg)/],
+  ["Are you commuting?", /commut/],
+  ["How many legs today?", /how many legs|(four|five|six|4|5|6) legs/],
+  ["When's your upgrade?", /upgrad/],
+  ["Seniority number", /seniority|my number|bid number/],
+  ["Did you hold a line?", /hold a line|held a line|bid line|line holder|bidding|the bid/],
+  ["On reserve", /reserve|short call|long call/],
+  ["Junior manned", /junior man|junior assign|got j a'?d|got jayed/],
+  ["Trip trade", /trip trade|traded (my|a|the) trip|swap(ped)? (a |my |the )?trip|trip swap/],
+  ["Hotel van", /\bvan\b|shuttle/],
+  ["Which hotel?", /which hotel|what hotel|where('s| is) the hotel|hotel (is|was)/],
+  ["Early show", /(early|late) show|show time|report time|\d ?am show/],
+  ["Deadhead", /dead ?head/],
+  ["Non-rev", /non ?rev|stand ?by list|listing for/],
+  ["The contract", /contract|tentative agreement|\bt a\b/],
+  ["Union talk", /union|swapa|\bafa\b|\btwu\b/],
+  ["Assigned seating", /assigned seat|open seating|seat assignments?/],
+  ["Red-eye", /red ?eye/],
+  ["The Max", /\bmax\b|seven thirty seven|737|\b(dash )?(seven|eight)\b hundred/],
+  ["Named a base city", /\b(midway|love field|denver|phoenix|houston|hobby|baltimore|oakland|vegas|orlando|atlanta|nashville|austin|san antonio|fort lauderdale|lauderdale|san diego)\b/],
+  ["Overnight / layover", /overnight|layover|lay over/],
+  ["Fatigue call", /fatigue/],
+  ["Called in sick", /called (in )?sick|sick call|sick bank|sick time/],
+  ["Crew scheduling called", /scheduling|scheduler|crew sched|they called me/],
+  ["Min rest", /min(imum)? rest|reduced rest|ten hours|10 hours|legal rest/],
+  ["Per diem / TFP", /per diem|\btfp\b|trips? for pay|pay check|paycheck/],
+  ["Retirement", /retir/],
+  ["Four-day trip", /(four|three|two|4|3|2)[ -]day|pairing|turn ?around/],
+  ["Maintenance delay", /maintenance|mechanical|\bmx\b|delay|cancel+ed|irops/],
+  ["Weather", /weather|de ?ic(e|ing)|thunderstorm|storms?\b|wind ?shear/],
+  ["Crash pad", /crash ?pad/],
+  ["Jumpseat", /jump ?seat/],
+  ["Captain or FO?", /captain|first officer|\bf o\b/],
+  ["Overhead bins", /overhead|bin space|carry ?on|gate check/],
+  ["We don't do hubs", /point to point|\bhubs?\b/],
+  ["Days off", /days off|day off|golden days|vacation/],
+  ["How long you been here?", /how long (have )?(you|ya) been (here|with|at)|hire date|date of hire|class of|when did you get hired/],
+  ["Military or civilian?", /military|air force|navy|marines?|national guard|civilian|regional/],
+  ["Herb story", /\bherb\b|kelleher/],
+  ["Peanuts", /peanuts?|pretzels?/],
+  ["New hire", /new hire|ioe|line check|check ride|sim\b/],
+  ["Pass on that trip", /drop(ped)? (a |my |the )?trip|open time|pick(ed)? up (a |the )?trip/],
+];
+
+const KEY = "swa-bar-bingo-v1";
+const $ = s => document.querySelector(s);
+const LINES = [];
+for (let r=0;r<5;r++) LINES.push([0,1,2,3,4].map(c=>r*5+c));
+for (let c=0;c<5;c++) LINES.push([0,1,2,3,4].map(r=>r*5+c));
+LINES.push([0,6,12,18,24],[4,8,12,16,20]);
+
+let state;
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function newState(){
+  const picks = shuffle(POOL.map((_,i)=>i)).slice(0,24);
+  picks.splice(12,0,-1);
+  return {cells:picks, marks:picks.map(i=>i===-1?"free":null), seen:[]};
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function load(){
+  try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.cells&&s.cells.length===25&&s.cells.every(i=>i===-1||POOL[i]))return s;}catch(e){}
+  return newState();
+}
+
+function render(){
+  const g=$("#grid"); g.innerHTML="";
+  const won=new Set(); let lines=0;
+  LINES.forEach(L=>{if(L.every(k=>state.marks[k])){lines++;L.forEach(k=>won.add(k));}});
+  state.cells.forEach((pi,k)=>{
+    const b=document.createElement("button");
+    b.className="cell"; b.id="c"+k; b.type="button";
+    b.style.setProperty("--r",((k*37)%30-15)+"deg");
+    const s=document.createElement("span");
+    if(pi===-1){b.classList.add("free");s.textContent="FREE";b.setAttribute("aria-label","Free space");}
+    else{
+      s.textContent=POOL[pi][0];
+      const m=state.marks[k];
+      if(m)b.classList.add("on");
+      if(m==="mic")b.classList.add("mic-hit");
+      b.setAttribute("aria-pressed",m?"true":"false");
+      b.onclick=()=>{state.marks[k]=state.marks[k]?null:"tap";save();render();};
+    }
+    if(won.has(k))b.classList.add("win");
+    b.appendChild(s); g.appendChild(b);
+  });
+  const n=state.marks.filter(Boolean).length;
+  $("#count").textContent=n+"/25"; $("#lines").textContent=lines;
+  return lines;
+}
+
+let lastLines=0;
+function refresh(){
+  const l=render();
+  if(l>lastLines){$("#bingomsg").textContent=l===1?"Next round's on the table":l+" lines and counting";$("#bingo").hidden=false;}
+  lastLines=l;
+}
+
+function norm(t){return " "+t.toLowerCase().replace(/[’']/g,"'").replace(/[^a-z0-9' ]+/g," ").replace(/\s+/g," ").trim()+" ";}
+function check(text, source){
+  const t=norm(text); const hits=[];
+  state.cells.forEach((pi,k)=>{
+    if(pi===-1||state.marks[k])return;
+    if(POOL[pi][1].test(t)){state.marks[k]=source;hits.push(k);}
+  });
+  if(hits.length){
+    save(); refresh();
+    hits.forEach(k=>{const el=$("#c"+k);if(el){el.classList.add("flash");}});
+    const names=hits.map(k=>POOL[state.cells[k]][0]).join(", ");
+    const tt=$("#toast"); tt.innerHTML=""; tt.append("Stamped ");
+    const bb=document.createElement("b"); bb.textContent=names; tt.append(bb);
+    if(navigator.vibrate)try{navigator.vibrate(60);}catch(e){}
+  }
+  return hits.length;
+}
+
+/* Speech */
+const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null, listening=false, wake=null;
+function warn(html){const w=$("#warn");w.innerHTML=html;w.hidden=!html;}
+function setMic(on){
+  listening=on;
+  $("#micbtn").setAttribute("aria-pressed",on?"true":"false");
+  $("#micbtn").setAttribute("aria-label",on?"Stop listening":"Start listening");
+  $("#miclbl").textContent=on?"Listening":"Tap to listen";
+  if(!on)$("#live").textContent="Paused. Tap the mic to listen again.";
+}
+const BLOCKED='<b>The mic is blocked in this viewer.</b> Open the standalone game file in Safari or Chrome to use listening. Until then, tap squares or type what you heard below.';
+async function startMic(){
+  if(!SR){warn('<b>This browser has no speech recognition.</b> Use Chrome on Android or Safari on iPhone. You can still tap squares or type lines below.');return;}
+  rec=new SR(); rec.lang="en-US"; rec.continuous=true; rec.interimResults=true;
+  rec.onresult=e=>{
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const tx=e.results[i][0].transcript;
+      $("#live").textContent="“"+tx.trim()+"”";
+      check(tx,"mic");
+    }
+  };
+  rec.onerror=e=>{
+    if(e.error==="not-allowed"||e.error==="service-not-allowed"||e.error==="audio-capture"){warn(BLOCKED);stopMic();}
+  };
+  rec.onend=()=>{if(listening){try{rec.start();}catch(e){}}};
+  try{rec.start();setMic(true);warn("");}catch(e){warn(BLOCKED);return;}
+  try{if(navigator.wakeLock)wake=await navigator.wakeLock.request("screen");}catch(e){}
+}
+function stopMic(){
+  setMic(false);
+  if(rec){rec.onend=null;try{rec.stop();}catch(e){}rec=null;}
+  if(wake){wake.release().catch(()=>{});wake=null;}
+}
+$("#micbtn").onclick=()=>listening?stopMic():startMic();
+document.addEventListener("visibilitychange",async()=>{if(listening&&document.visibilityState==="visible"&&navigator.wakeLock){try{wake=await navigator.wakeLock.request("screen");}catch(e){}}});
+
+$("#typeform").addEventListener("submit",e=>{
+  e.preventDefault(); const v=$("#typed").value.trim(); if(!v)return;
+  if(!check(v,"tap"))$("#toast").textContent="No square for that one. Try another line.";
+  $("#typed").value="";
+});
+$("#newcard").onclick=()=>{state=newState();lastLines=0;save();render();$("#toast").textContent="Fresh card. Good luck.";};
+$("#clear").onclick=()=>{state.marks=state.cells.map(i=>i===-1?"free":null);lastLines=0;save();render();$("#toast").textContent="Stamps cleared.";};
+$("#closebingo").onclick=()=>{$("#bingo").hidden=true;};
+
+state=load(); lastLines=render();
+</script>
+
+</body>
+</html>
